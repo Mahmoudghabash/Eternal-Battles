@@ -45,6 +45,7 @@ class  Handle_buttons:
 card1 = cards.Cards()     
 in_game = in_Game.BattleScreen()
 
+# buttons 
 main_GoBack = Handle_buttons(30,500,200,50)     
 Create_Deck = Handle_buttons(30,500,200,50)
 Save_Deck = Handle_buttons(30,500,200,50)
@@ -72,7 +73,7 @@ def main():
         pygame.display.update()
         
 ###########################################################################################
-
+# ignore, useless vars
 BUTTON_W = Winds.SCREEN_WIDTH-200
 BUTTON_H = 100
 
@@ -187,7 +188,7 @@ def select_deck():
                     in_game.selected_deck = rect_index
                     text.txt_getter.draw_txt(str(index), fonts.font1, colors.BLACK, Winds.SELECT_DECK, 300,300)
                     for card in card1.Decks:
-                        deckpath = os.path.join('Decks/', card1.Decks[index])
+                        deckpath = os.path.join('Deckss/', card1.Decks[index])
                         with open (deckpath, 'r') as DeckFile:
                             card1.Deck = DeckFile.readlines()
                     game_screen()
@@ -202,9 +203,8 @@ def select_deck():
 
 def game_screen():
     
-    #in_game.__init__()
     random.shuffle(in_game.game_deck)
-   
+    #still drawing is manual for now
     in_game.draw_card()
     in_game.draw_card()
     in_game.draw_card()
@@ -227,10 +227,7 @@ def game_screen():
                 
                 
         pygame.display.update()
-    
         
- 
-                 
 main_menu()             
                 
 #if _name_ == "_main_menu_":
