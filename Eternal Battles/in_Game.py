@@ -20,18 +20,18 @@ class BattleScreen:
     field_rect = pg.Rect
     events = pg.event.get()
     
-    
     hand_cards = []
     game_deck = []
     cards_rects = []
-    cards_inHand = 0
-    DeckSize = 0
-    clicked = False
     Decks = []
+    Friends = []
+    Friends_Rects = []
+    Enemies= []
+    DeckSize = 0
     selected_deck = 0
+    clicked = False
     
     def __init__(self):
-        
         random.shuffle(self.game_deck)
         self.field_rect= pg.Rect(win.SCREEN_WIDTH//2-self.field_Size[0]//2, win.SCREEN_HIGHT//2-self.field_Size[1]//2,self.field_Size[0], self.field_Size[1])
         deckspath = 'Decks/'
@@ -48,24 +48,33 @@ class BattleScreen:
             self.game_deck[index] = int(self.game_deck[index])
             
     def render_field(self):
-        for index, card in enumerate(self.game_deck):
-            text.txt_getter.draw_txt(f"{self.game_deck[index]}", fonts.font2, colors.RED, win.GAME_WIN, 200 , 200)
         pg.draw.rect(win.GAME_WIN, colors.GOLD, self.field_rect)
     
     def draw_card(self):
-        if self.cards_inHand <= self.MAX_HAND_SIZE and self.DeckSize>0:
+        if len(self.hand_cards) <= self.MAX_HAND_SIZE and self.DeckSize>0:
             self.cards_rects.append(pg.Rect)
             print(str(self.DeckSize))
             self.hand_cards.append(self.game_deck[self.DeckSize-1])
             self.game_deck.pop()
             self.DeckSize -=1
-            self.cards_inHand+=1
 
     
     def draw_rects(self):
-        for rect in self.cards_rects:
+        for index, rect in enumerate(self.cards_rects):
             pg.draw.rect(win.GAME_WIN, colors.BLACK, rect)
-    
+            text.txt_getter.draw_txt(f"{cards_getter.HEALTH[self.hand_cards[index]]}", fonts.font2, colors.RED, win.GAME_WIN, rect.left , rect.top)
+
+        xGapper = 30
+        for index, Friendr in enumerate(self.Friends_Rects):
+            Friendr = pg.Rect(30+xGapper, self.field_rect.bottom-cards.CARD_HIGHT, 75, 75)
+            self.Friends_Rects[index] = Friendr
+            pg.draw.rect(win.GAME_WIN, colors.BLACK, Friendr)
+            text.txt_getter.draw_txt(f"{cards_getter.HEALTH[self.Friends[index]]}", fonts.font2, colors.RED, win.GAME_WIN, Friendr.left , Friendr.top)
+            xGapper+=cards.CARD_WIDTH
+            
+            
+            
+            
     def play_card(self, events):
         global mousebutton
         global theOne
@@ -85,25 +94,19 @@ class BattleScreen:
             for event in events:
                 if event.type == pg.MOUSEBUTTONUP:
                     self.clicked = False
-                if event.type == pg.MOUSEBUTTONUP and self.cards_rects[theOne].y>self.field_rect.top and len(self.cards_rects)>0:
+                if event.type == pg.MOUSEBUTTONUP and self.cards_rects[theOne].y>self.field_rect.top and len(self.hand_cards)>0:
                     self.clicked = False
                     self.played = True
+                    self.Friends.append(self.hand_cards[theOne])
+                    self.Friends_Rects.append(pg.Rect)
                     self.cards_rects.pop(theOne)
-
-                        
+                    self.hand_cards.pop(theOne)
                     
+         
     def render_cards(self, events):
         xGapper = 0
-        print(f"{len(self.game_deck)}")
         for index, card in enumerate(self.cards_rects):
-            card = pg.Rect(30+xGapper, 100, 75, 75)
-            text.txt_getter.draw_txt(f"{cards_getter.HEALTH[self.hand_cards[index]]}", fonts.font2, colors.RED, win.GAME_WIN, card.left , card.top)
+            card = pg.Rect(30+xGapper, cards.CARD_HIGHT//2+self.field_rect.bottom, 75, 75)
             self.cards_rects[index] = card
-            xGapper+=120
-
-
-
-            
-    
-    
-    
+            xGapper+=30+cards.CARD_WIDTH
+   
