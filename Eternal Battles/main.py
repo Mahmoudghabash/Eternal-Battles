@@ -188,7 +188,7 @@ def select_deck():
                     in_game.selected_deck = rect_index
                     text.txt_getter.draw_txt(str(index), fonts.font1, colors.BLACK, Winds.SELECT_DECK, 300,300)
                     for card in card1.Decks:
-                        deckpath = os.path.join('Deckss/', card1.Decks[index])
+                        deckpath = os.path.join('Decks/', card1.Decks[index])
                         with open (deckpath, 'r') as DeckFile:
                             card1.Deck = DeckFile.readlines()
                     game_screen()
