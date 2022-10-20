@@ -44,8 +44,8 @@ class  Handle_buttons:
 
 card1 = cards.Cards()     
 in_game = in_Game.BattleScreen()
+minion_obj = Minions.minion()
 
-# buttons 
 main_GoBack = Handle_buttons(30,500,200,50)     
 Create_Deck = Handle_buttons(30,500,200,50)
 Save_Deck = Handle_buttons(30,500,200,50)
@@ -73,7 +73,7 @@ def main():
         pygame.display.update()
         
 ###########################################################################################
-# ignore, useless vars
+
 BUTTON_W = Winds.SCREEN_WIDTH-200
 BUTTON_H = 100
 
@@ -126,8 +126,8 @@ def main_menu():
         Winds.WIN.fill(colors.Light_Yellow)        
         text.txt_getter.draw_txt("Main Menu", fonts.font1, colors.BLACK, Winds.WIN, 30, 50)
         events = pygame.event.get()
-        
         init_cards.init_cards()
+        
         Start_Button = pygame.Rect(100, 150, BUTTON_W, BUTTON_H)
         Deck_Button = pygame.Rect(100, 300, BUTTON_W, BUTTON_H)
         pygame.draw.rect(Winds.WIN, colors.RED, Start_Button)
@@ -203,8 +203,10 @@ def select_deck():
 
 def game_screen():
     
+    #in_game.__init__()
     random.shuffle(in_game.game_deck)
-    #still drawing is manual for now
+    for index, card in enumerate(in_game.game_deck):
+        in_game.HEALTH.append(card1.HEALTH[in_game.game_deck[index]]) 
     in_game.draw_card()
     in_game.draw_card()
     in_game.draw_card()
@@ -218,8 +220,8 @@ def game_screen():
         if not in_Game.mousebutton[0]:
             in_game.render_cards(events)
         in_game.play_card(events)
+        minion_obj.attack(events)
         in_game.draw_rects()
-        
         for event in events:
             if event.type ==pygame.QUIT:
                 pygame.quit()
@@ -227,7 +229,10 @@ def game_screen():
                 
                 
         pygame.display.update()
+    
         
+ 
+                 
 main_menu()             
                 
 #if _name_ == "_main_menu_":

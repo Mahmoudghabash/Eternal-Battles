@@ -1,3 +1,4 @@
+import Minions
 import cards
 
 
@@ -23,6 +24,8 @@ def init_cards():
         CARD8.set_cards(7,8,6,1, "Soul Healer")
         CARD9 =cards.Cards()
         CARD9.set_cards(8,6,8,6, "Jesus")
-        CARD10 =cards.Cards()
+        CARD10 = Minions.minion()
         CARD10.set_cards(8,6,8,6, "Jesus")
+        CARD11 = Minions.minion()
+        CARD11.set_cards(8,6,8,6, "Jesus")
         cards_obj.global_cards_init = True
