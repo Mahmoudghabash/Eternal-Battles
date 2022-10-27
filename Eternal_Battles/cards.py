@@ -43,7 +43,7 @@ class Cards:
     
 ########################################################  SET CARDS
 
-    def set_cards(self, id, c, h, d, n): 
+    def set_cards(self, id, c, h, d, n):
         self.CARD_ID.append(id)
         self.COST.append(c)
         self.HEALTH.append(h)
