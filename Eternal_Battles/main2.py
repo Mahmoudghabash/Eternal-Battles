@@ -73,6 +73,9 @@ class BattleWindow(Scene):
 
 		# create_objects
 		deck = Deck([1 , 1 , 1 , 1 , 2 , 2 , 2 , 2] , area = [.2 , .2] , center = [.5 , .8] , groups = self.players)
+		deck.shuffle_main_deck()
+		deck.main_to_hand(4)
+
 
 
 MainWindow().run()

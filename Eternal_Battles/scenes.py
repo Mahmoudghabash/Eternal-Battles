@@ -101,6 +101,18 @@ class Scene:
 			pg.display.update()
 			clock.tick(self.FPS)
 
+	def run_frame(self):
+		"""
+		Run 1 frame. It does not call the pygame.display.update()
+		:return: None
+		"""
+		if pg.event.peek(pg.QUIT):
+			self.quit()
+		self.event_handler()
+		self.update_handler()
+		self.move_handler()
+		self.draw_handler()
+
 	def create_objects(self):
 		"""
 		Change this class to create all the objects you will have in this class.
