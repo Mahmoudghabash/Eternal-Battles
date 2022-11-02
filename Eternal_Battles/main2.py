@@ -8,13 +8,6 @@ from functools import partial
 
 pg.init()
 
-############################### Windows of the game ###############################
-# Every window is a class and have the objects it will use on that very class
-#
-#
-#
-
-
 class MainWindow(Scene):
 	def __init__(self , **kwargs):
 
