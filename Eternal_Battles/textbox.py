@@ -8,32 +8,33 @@ import pygame as pg
 from pygame.sprite import Sprite
 
 # Some Default Font
-font_size = int(screen_rect.h / 20)
+font_size = int(screen_rect.h / 1)
 main_menu_font = pg.font.SysFont("arial" , font_size , False , False)
 
 
 class TextBox(Sprite):
-	""" this will work with long sentences,
-	cutinh then is smaller ones , and drawing
-	each on screen.
-	param txt : string
+	""" this will work with short sentences, 1 line only.
+	param text : string
 	param rect : pg.Rect
 	param font : pg.font.SysFont
 	param font_color : pg.color
 	param bg_color : pg.color
 	"""
 
-	def __init__(self , text , rect , rect_to_be, centered_x = True , centered_y = False, font = None , font_color = "white" , bg_color = "black" , groups = None):
+	def __init__(self , text='' , area = (1,1) , rect_to_be = None , relative_center = None , absolute_center = None , font = None , font_color = "white" , bg_color = "black" , groups = None):
 		"""
-		It takes a string, a pg.Rect , a pg.font,
+
+		It takes a string, a area proportion , a pg.font,
 		font color and a background color.
 
-		:param text : string
-		:param centered_x: if the text should be centered in the x axis
-		:param rect : pg.Rect
-		:param font : pg.font.SysFont
-		:param font_color : pg.color
-		:param bg_color : pg.color
+
+		:param text: str with the text to show
+		:param area: list with 2 sizes from 0 to 1 to
+		:param rect_to_be: pg.Rect object, where the proportion will be (1,1)
+		:param font: pg.Font object
+		:param font_color: pg.Color
+		:param bg_color: pg.Color or None
+		:param groups: list of groups to this object to be, if any.
 		"""
 		if groups is None:
 			groups = []
@@ -42,81 +43,79 @@ class TextBox(Sprite):
 		super().__init__(*groups)
 		if font is None:
 			font = main_menu_font
+		if rect_to_be is None:
+			rect_to_be = screen_rect
 		self.text = text
 		self.font = font
 		self.font_color = font_color
 		self.bg_color = bg_color
-		self.rect = pg.Rect(calc_proportional_size(expected = rect , max_area = [1,1] , max_rect = rect_to_be))
-		self.centered_x = centered_x
-		self.centered_y = centered_y
-		if centered_x:
-			self.rect.centerx = rect_to_be.centerx
-		if centered_y:
-			self.rect.centery = rect_to_be.centery
+		self.rect_to_be = rect_to_be
+		self.rect = pg.Rect((0,0) , calc_proportional_size(expected = area , max_area = [1,1] , max_rect = self.rect_to_be))
+
+		if (relative_center is None) ^ (absolute_center is None):
+			self.relative_center = relative_center
+			if self.relative_center is not None:
+				self.rect.center = calc_proportional_size(relative_center , max_area = (1,1) , max_rect = self.rect_to_be) + self.rect_to_be.topleft
+			elif absolute_center is not None:
+				self.rect.center = absolute_center
+
 		self.max_size = self.rect.w*0.9
 		self.line_w , self.line_h = self.font.size(str(text))
-		self.lines = []
-		self.get_lines()
 		self.cliked = False
+		self.surface = None
+		self.create_image()
 
-	def get_one_line(self , te):
-		"""
-		Gets a full txt and extract a number of words
-		enought to fill a line.
-		return : the first line and the rest of the text
+	def create_image(self):
+		new_surface = pg.Surface((self.line_w , self.line_h)).convert_alpha()
+		new_surface.fill([0,0,0,0])
+		txt = self.font.render(self.text , True , self.font_color , self.bg_color)
+		new_surface.blit(txt , (0,0))
+		new_surface = pg.transform.scale(new_surface , self.rect.size)
+		self.surface = new_surface
+		self.center_image()
 
-		:param te : str
+	def center_image(self):
 		"""
-		words = te.split(' ')
-		line = ''
-		line = f"{line}' '{words.pop(0)}"
-		while self.font.size(line)[0] <= self.max_size +1:
-			x = f"{line}' '{words[0]}"
-			if self.font.size(x)[0] <= self.max_size+1:
-				line = str(x)
-				words.pop(0)
-			else:
-				te = te[len(line): ]
-				return line[1:] , te
-		return te , ''
+		Check if the image is centered in the rect to be
+		:return:
+		"""
+		if self.relative_center is not None:
+			self.rect.center = calc_proportional_size(self.relative_center , max_area = (1 , 1) ,
+			                                          max_rect = self.rect_to_be) + self.rect_to_be.topleft
 
-	def get_lines(self):
-		"""
-		Create all the lines needed to fill the box
-		"""
-		t = str(self.text) # makes a copy
-		lines = []
-		while self.font.size(t)[0] > self.max_size+1:
-			one_line , t = self.get_one_line(t)
-			lines.append(one_line)
-		lines.append(t)
-		self.lines = lines
 
-	def draw(self, screen_to_draw):
+	def draw(self, screen_to_draw , angle = None):
 		"""
 		Draw the text box in the given surface.
 		:param screen_to_draw: pg.Surface Object
 		:return: None
 		"""
-		new_surface = pg.Surface((self.rect.w , self.line_h*len(self.lines)))
-		new_surface_rect = new_surface.get_rect()
-		for counter , line in enumerate(self.lines):
-			txt = self.font.render(line , True , self.font_color , self.bg_color)
-			txt_rect = txt.get_rect()
-			txt_rect.top = counter*self.line_h
-			if self.centered_x:
-				txt_rect.centerx = new_surface_rect.centerx
-			new_surface.blit(txt , txt_rect)
-		new_surface_rect.topleft = self.rect.topleft
-		if self.centered_y:
-			new_surface_rect.centery = self.rect.centery
-		screen_to_draw.blit(new_surface , new_surface_rect)
+		screen_to_draw.blit(self.surface , self.rect)
 
-	def change_text(self , new_text):
+	def update(self):
+		return
+
+	def change_text(self , new_text = ''):
 		"""
-		Change the current text
-		:param new_text: str
-		:return: None
+		Change the text of this box.
+		:param new_text: a string object
+		:return:
 		"""
 		self.text = new_text
-		self.get_lines()
+		self.line_w , self.line_h = self.font.size(str(self.text))
+		self.create_image()
+
+
+	def resize(self , new_area , rect_to_be = None):
+		"""
+		Resizes the rect for the new area given,
+		:param new_proportional_size:
+		:param rect_to_be:
+		:return:
+		"""
+		if rect_to_be is not None:
+			self.rect_to_be = rect_to_be
+
+		self.rect = self.rect = pg.Rect((0,0) , calc_proportional_size(expected = new_area , max_area = [1,1] ,
+		                                                               max_rect = self.rect_to_be))
+		self.create_image()

@@ -42,6 +42,18 @@ CARDS_STATS_DICT = {
 		'health' : 100 ,
 		'damage' : 3 ,
 		'card_name' : 'Test2',
+	},
+    3: {
+		'cost' : 4 ,
+		'health' : 100 ,
+		'damage' : 3 ,
+		'card_name' : 'Test2',
+	},
+    4: {
+		'cost' : 4 ,
+		'health' : 100 ,
+		'damage' : 3 ,
+		'card_name' : 'Test2',
 	}
 }
 

@@ -7,10 +7,12 @@ pg.font.init()
 ######## Create main screen
 screen = pg.display.set_mode((800 , 1000))
 screen_rect = screen.get_rect()
-FPS = 45
+creation_rect = pg.Rect(0 , 0 , screen_rect.width , 300)
+creation_rect.midbottom = screen_rect.midtop
+FPS = 30
 REPULTION_FORCE = .8
-HAND_RECT = pg.Rect( 0 , 0 , screen_rect.w , screen_rect.h*.25)
-HAND_RECT.midbottom = screen_rect.midbottom
+POPULATION_CLASSES = [None]
+FILTERS_CLASSES = []
 
 ######## Groups
 text_boxes_group = pg.sprite.Group()
@@ -25,6 +27,10 @@ enemies_ind_groups = pg.sprite.Group()
 
 
 buttons_group = pg.sprite.Group()
+shoots_group = pg.sprite.Group()
+filter_group = pg.sprite.Group()
+
+moving_objects_group = set()
 
 timers = []
 
@@ -61,30 +67,18 @@ dict_with_images = {
 
 ######## dicts and lists
 
-exemple_dict = {
-		'update': [],
-		'move': [],
-		'draw': [],
-		'click_down': [],
-		'click_up': [],
-		'key_down': [],
-		'key_up': [],
-		'multi_gesture': [],
-		'finger_down': [],
-		'finger_up': [],
-		'finger_motion' : []
-		}
+
 
 main_scene_dict = {
-		'update': [players_group],
-		'move': [players_group],
-		'draw': [players_group],
+		'update': [players_group , enemies_group , timers , filter_group , shoots_group ],
+		'move': [players_group , enemies_group , filter_group , shoots_group],
+		'draw': [filter_group , players_group , enemies_group , shoots_group],
 		'click_down': [players_group],
 		'click_up': [],
 		'key_down': [],
 		'key_up': [],
 		'multi_gesture': [],
-		'finger_down': [],
+		'finger_down': [players_group],
 		'finger_up': [],
 		'finger_motion' : []
 		}

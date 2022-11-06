@@ -384,7 +384,10 @@ class Scene:
 		:param scene: A Scene object
 		:return: None
 		"""
-		scene().run()
+		if type(scene) == type:
+			scene().run()
+		else:
+			scene.run()
 
 	def stop_other(self , scene):
 		"""
@@ -392,7 +395,10 @@ class Scene:
 		:param scene: A Scene object
 		:return: None
 		"""
-		scene().stop()
+		if type(scene) == type:
+			scene().stop()
+		else:
+			scene.stop()
 
 	def stop(self):
 		self.running = False
@@ -478,5 +484,5 @@ if __name__=="__main__":
 	screen = pg.display.set_mode((400,800))
 	screen_rect = screen.get_rect()
 	a = Canvas()
-	main_menu = Scene(screen , dicts_to_do={"finger_down": [[a]] , "draw": [[a]] , "finger_up": [[a]]})
+	main_menu = Scene(screen , dict_to_do={"finger_down": [[a]] , "draw": [[a]] , "finger_up": [[a]]})
 	main_menu.run()

@@ -13,6 +13,13 @@ DeckText = ""
 active = False
 Color = colors.RED
 
+cards_dict = {
+    0:{
+        "HEALTH" : '5',
+        "DAMGE" : '5',
+        "COST" : '5',     
+    },
+}
     
         
 class Cards:
@@ -43,7 +50,7 @@ class Cards:
     
 ########################################################  SET CARDS
 
-    def set_cards(self, id, c, h, d, n):
+    def set_cards(self, id, c, h, d, n): 
         self.CARD_ID.append(id)
         self.COST.append(c)
         self.HEALTH.append(h)
@@ -139,7 +146,7 @@ class Cards:
         
         text_rect = pygame.Rect(300, 600, 400, 50)
         pygame.draw.rect(Winds.DECK_WIN, Color, text_rect)
-
+        
         if not active:
             txtW = text.txt_getter.get_txtW("Enter The Deck Name", fonts.font2)
             txtH = text.txt_getter.get_txtH("Enter The Deck Name", fonts.font2)

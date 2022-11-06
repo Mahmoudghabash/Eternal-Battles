@@ -41,13 +41,39 @@ class Timer:
 	def kill(self):
 		for group in self.groups:
 			if type(group) == list:
+				print('list')
 				group.remove(self)
 			elif type(group) == set:
-				group.discard_deck(self)
-			group.remove(self)
+				print('set')
+				group.discard(self)
+
+	def get_elapsed_time_proportion(self):
+		"""
+		Get the proportion of the elapsed time and the total timer
+		:return:
+		"""
+		return self.get_elapsed_time()/self.timer
+
+	def get_elapsed_time(self):
+		now = dt.now()
+		return now - self.initial_time
+
+	def get_remaining_time(self):
+		now = dt.now()
+		elapsed_time = now - self.initial_time
+		return self.timer - elapsed_time
+
+	def get_remaining_time_proportion(self):
+		return self.get_remaining_time()/self.timer
 
 
 if __name__ == '__main__':
 	a = []
-
-	b = Timer(time_var = 1 , recurrent = False , command = partial(print , 'teste') , groups = [a])
+	running = True
+	def change_running():
+		global running
+		print('aconteceu')
+		running = False
+	b = Timer(time_var = 1 , recurrent = False , command = partial(change_running) , groups = [a])
+	while running:
+		b.update()

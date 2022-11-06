@@ -8,33 +8,38 @@ stuff in general
 from variables import *
 from definitions import *
 from animations import Animations
+from textbox import TextBox
 
 
 class Button(Animations):
-	def __init__(self , area , center , rect_to_be = None , image: str = None , txt = None , on_click_down = None ,
-	             on_click_up = None , colors = None , groups = None):
+	def __init__(self , area = (1,1) , center = None , rect_to_be = None ,  image: str = None , text = None , on_click_down = None , on_click_up = None , colors = None , groups = None):
 		"""
 		It creates a rect in the screen, and does a action when interacted. If calls update, when hoovered it slightly change the color.
-		:param relative_size: a list or tuple with float numbers from 0 to 1.0
-		:param action: str with the action to do.
-		:param image: str with path to the image
-		:param txt: str with what should it show
-		:param action_on_click: bool
-		:param colors: list of pg.color
+
+		:param area: list with 2 sizes, from 0 to 1.
+		:param center: the center of the rect, in proportion
+		:param rect_to_be: pg.Rect object, the rect to where it will be
+		:param image: address of the image to Animations
+		:param text: String or None, to show on the button
+		:param on_click_down: func to call when clicked down
+		:param on_click_up: func to call when clicked up
+		:param colors: list with 3 colors, for when hovered, clicked or default
+		:param groups:
 		"""
 		if colors is None:
-			colors = ['orange' , 'orange4' , 'orange2']
-		Animations.__init__(self , area = area , rect_to_be = rect_to_be , image_name = image , center = center ,
-		                    groups = groups)
+			colors =  ['orange' , 'orange4' , 'orange2']
+		Animations.__init__(self , area = area , color = colors[0] , rect_to_be = rect_to_be, image_name = image , center = center ,  groups = groups)
 		self.on_click_down = on_click_down
 		self.image = image
 		self.clicked = False
 		self.on_click_up = on_click_up
-		self.color = 0
 		self.colors = colors
-		self.txt = txt
+		if text is None:
+			self.text = None
+		else:
+			self.text = TextBox(text=text , area = (.9,.9) , rect_to_be = self.rect , relative_center = (.5 , .5), font = None , font_color = "black" , bg_color = None , groups = None)
 		self.fingers_id = set()
-
+	
 	def finger_down(self , event):
 		"""
 		Check if it is clicked, and it set to do action on click, do the action
@@ -44,16 +49,16 @@ class Button(Animations):
 		old_click = self.clicked
 		p_x = event.x * screen_rect.w
 		p_y = event.y * screen_rect.h
-		if self.rect.collidepoint((p_x , p_y)):  # cheeck click
+		if self.rect.collidepoint((p_x , p_y)): # cheeck click
 			self.clicked = True
-			self.color = 1
-			self.do_action(on_click_down = True)
+			self.color = self.colors[1]
+			self.do_action(on_click_down=True)
 			self.fingers_id.add(event.finger_id)
 			if old_click != self.clicked:
 				if self.clicked:
-					self.do_action(on_click_down = True)
+					self.do_action(on_click_down=True)
 		return self.clicked
-
+		
 	def finger_up(self , event):
 		"""
 		Set itself as not clicked, and it set to do a action, do the action if the mouse it in the rect
@@ -65,13 +70,13 @@ class Button(Animations):
 			p_x = event.x * screen_rect.w
 			p_y = event.y * screen_rect.h
 			if self.rect.collidepoint((p_x , p_y)):
-				self.do_action(on_click_down = False)
+				self.do_action(on_click_down=False)
 				self.fingers_id.discard(event.finger_id)
 		self.clicked = bool(self.fingers_id)
 		if old_click != self.clicked:
 			if not self.clicked:
-				self.do_action(on_click_down = False)
-
+				self.do_action(on_click_down=False)
+	
 	def finger_motion(self , event):
 		"""
 		check if the button is pressed with the given motion
@@ -87,9 +92,9 @@ class Button(Animations):
 		self.clicked = bool(self.fingers_id)
 		if old_click != self.clicked:
 			if self.clicked:
-				self.do_action(on_click_down = True)
+				self.do_action(on_click_down=True)
 			else:
-				self.do_action(on_click_down = False)
+				self.do_action(on_click_down=False)
 
 	def draw(self , screen_to_draw):
 		"""
@@ -97,16 +102,11 @@ class Button(Animations):
 		:param screen_to_draw: pg.Surface
 		:return: None
 		"""
-		if self.images:
-			Animations.draw(self , screen_to_draw = screen_to_draw)
-		else:
-			pg.draw.rect(screen_to_draw , self.colors[self.color] , self.rect)
+		Animations.draw(self , screen_to_draw =  screen_to_draw)
 
-		if self.txt:
-			button_text = main_menu_font.render(str(self.txt) , True , "black")
-			text_rect = button_text.get_rect()
-			text_rect.center = self.rect.center
-			screen.blit(button_text , text_rect)
+
+		if self.text is not None:
+			self.text.draw(screen_to_draw =  screen_to_draw)
 
 	def click_down_edit(self , event , button_pressed = None):
 		"""
@@ -150,10 +150,10 @@ class Button(Animations):
 		:param event: pg.MOUSEBUTTONDOWN
 		:return: bool
 		"""
-		if self.rect.collidepoint(event.pos):  # cheeck click
+		if self.rect.collidepoint(event.pos): # cheeck click
 			self.clicked = True
-			self.color = 1
-			self.do_action(on_click_down = True)
+			self.color = self.colors[1]
+			self.do_action(on_click_down=True)
 			return self.clicked
 
 	def move(self):
@@ -163,6 +163,8 @@ class Button(Animations):
 		"""
 		if self.clicked:
 			self.rect.move_ip(pg.mouse.get_rel())
+		if self.text is not None:
+			self.text.center_image()
 
 	def click_up(self , event):
 		"""
@@ -172,11 +174,11 @@ class Button(Animations):
 		"""
 		if self.clicked:
 			self.clicked = False
-			self.color = 0
-			if self.on_click_up:
+			self.color = self.colors[0]
+			if  self.on_click_up:
 				if self.rect.collidepoint(event.pos):
-					self.do_action(on_click_down = False)
-
+					self.do_action(on_click_down=False)
+	
 	def click_up_edit(self , event):
 		"""
 		Set itself as not clicked, and it set to do a action, do the action if the mouse it in the rect
@@ -185,7 +187,7 @@ class Button(Animations):
 		"""
 		if self.clicked:
 			self.clicked = False
-			self.color = 0
+			self.color = self.colors[0]
 			x , y , w , h = self.rect
 			x = x / screen_rect.w
 			y = y / screen_rect.h
@@ -203,13 +205,13 @@ class Button(Animations):
 			self.on_click_down()
 		elif (not on_click_down) and self.on_click_up:
 			self.on_click_up()
-
+				
 	def update(self):
 		"""
 		Just change its color when hoovered or clicked
 		:return:
 		"""
 		if self.clicked:
-			self.color = 1
+			self.color = self.colors[1]
 		else:
-			self.color = 0
+			self.color = self.colors[0]
