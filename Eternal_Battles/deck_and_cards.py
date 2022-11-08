@@ -265,7 +265,6 @@ class Deck(Animations):
 
 
 
-#######################
 class Card(Animations):
     """
     Things to do:
@@ -288,11 +287,11 @@ class Card(Animations):
         Animations.__init__(self , image_name = self.card_id , **kwargs)
 
         # set its values and things
-        self.cost = CARDS_STATS_DICT.get('cost' ,
-                                         2)  # check in the dict for the keyword cost and take the value there. If it don't find, return the second value
-        self.health = CARDS_STATS_DICT.get('health' , 10)
-        self.damage = CARDS_STATS_DICT.get('damage' , 2)
-        self.card_name = CARDS_STATS_DICT.get('card_name' , 'Test')
+        this_card_infos = CARDS_STATS_DICT.get(self.card_id)
+        self.cost = this_card_infos.get('cost' ,2)  # check in the dict for the keyword cost and take the value there. If it don't find, return the second value
+        self.health = this_card_infos.get('health' , 10)
+        self.damage = this_card_infos.get('damage' , 2)
+        self.card_name = this_card_infos.get('card_name' , 'No Name')
         self.deck = deck
 
         # for handle in game things
@@ -300,6 +299,11 @@ class Card(Animations):
         self.velocity = Vector2([0 , 0])
         self.acceleration = Vector2([0 , 0])
         self.clicked = False
+
+        self.text = TB(
+            text=f'{self.card_name}' , area = (1,.5) , rect_to_be = self.rect , relative_center = [.5 , .1] ,
+            font_color = "black" , bg_color = None
+        )
 
     # handlers and updates
     def update(self , **kwargs):
@@ -338,7 +342,7 @@ class Card(Animations):
                 if self.rect.colliderect(card):  # if card collide
                     if self.rect.center == card.rect.center:  # move a little bit if 2 rects are the same possition
                         self.rect.move_ip(int(random.random() * 10) , 0)
-                    ang = get_ang(self.rect.center , card.rect.center)  # calcs the angule
+                    ang = get_ang(self.rect.center , card.rect.center)  # calcs the angle
                     self.acceleration += pg.math.Vector2(-math.cos(ang) * FORCE_TO_CARDS , -math.sin(
                         ang) * FORCE_TO_CARDS)  # sums all the vector acc with the new vector from the force for the angule
 
@@ -370,9 +374,14 @@ class Card(Animations):
             self.rect.move_ip(self.velocity)
         self.rect.clamp_ip(self.rect_to_be)
 
+        self.text.center_image()
+
+    def draw(self , screen_to_draw , **kwargs):
+        Animations.draw(self , screen_to_draw = screen_to_draw , **kwargs)
+        self.text.draw(screen_to_draw = screen_to_draw)
+
     def click_down(self , event):
         self.clicked = self.rect.collidepoint(event.pos)
-        print(self.card_id)
         return self.clicked
 
     def click_up(self , event):

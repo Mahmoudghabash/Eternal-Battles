@@ -58,6 +58,8 @@ class TextBox(Sprite):
 				self.rect.center = calc_proportional_size(relative_center , max_area = (1,1) , max_rect = self.rect_to_be) + self.rect_to_be.topleft
 			elif absolute_center is not None:
 				self.rect.center = absolute_center
+		else:
+			raise LookupError('oh, just send one of relative_center or absolute_center')
 
 		self.max_size = self.rect.w*0.9
 		self.line_w , self.line_h = self.font.size(str(text))
@@ -83,14 +85,26 @@ class TextBox(Sprite):
 			self.rect.center = calc_proportional_size(self.relative_center , max_area = (1 , 1) ,
 			                                          max_rect = self.rect_to_be) + self.rect_to_be.topleft
 
-
-	def draw(self, screen_to_draw , angle = None):
+	def draw(self, screen_to_draw , angle = None , alpha = None):
 		"""
 		Draw the text box in the given surface.
 		:param screen_to_draw: pg.Surface Object
 		:return: None
 		"""
-		screen_to_draw.blit(self.surface , self.rect)
+		if alpha is not None or angle is not None:
+			new_surf = pg.Surface(self.rect.size).convert_alpha()
+			new_surf.fill([0 , 0 , 0 , 0])
+			new_surf.blit(self.surface , (0 , 0))
+			if angle is not None:
+				new_surf = pg.transform.rotate(new_surf , angle)
+			if alpha is not None:
+				new_surf.set_alpha(alpha)
+			new_rect_rect = new_surf.get_rect()
+			new_rect_rect.center = self.rect.center
+			screen_to_draw.blit(new_surf , new_rect_rect)
+
+		else:
+			screen_to_draw.blit(self.surface , self.rect)
 
 	def update(self):
 		return
@@ -104,7 +118,6 @@ class TextBox(Sprite):
 		self.text = new_text
 		self.line_w , self.line_h = self.font.size(str(self.text))
 		self.create_image()
-
 
 	def resize(self , new_area , rect_to_be = None):
 		"""

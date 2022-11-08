@@ -12,13 +12,15 @@ pg.init()
 
 ############################### Windows of the game ###############################
 # Every window is a class and have the objects it will use on that very class
+# Create every object it will have in the create_objects() function
+###################################################################################
 
-""
-###### Main Window ######
-# for now it has 2 buttons,
-# one to the main battle and one to the card creation
+''
 
-
+############################### Main Window ###############################
+# For now: 2 buttons, 1 for the deck selection and 1 for the battle
+#
+###################################################################################
 class MainWindow(Scene):
     def __init__(self , **kwargs):
 
@@ -42,14 +44,14 @@ class MainWindow(Scene):
 
         Scene.__init__(self , screen_to_draw = screen , dict_to_do = dict_to_do , **kwargs)
 
-
+    def create_objects(self):
         # create the buttons
-        start_main_battle_btn = Button(text = 'Battle' ,area = [.4 , .1] , center = [.5 , .3] ,
-                                       on_click_up = partial(BattleWindow().run) , groups = self.buttons)
+        Button(text = 'Battle' , area = [.4 , .1] , center = [.5 , .3] ,
+                                       on_click_up = partial(self.run_other , BattleWindow) , groups = self.buttons)
 
+        Button(text = 'Decks' , area = [.4 , .1] , center = [.5 , .6] ,
+                                    on_click_up = partial(self.run_other , DeckManager) , groups = self.buttons)
 
-        deck_selection_btn = Button(text = 'Decks' , area = [.4 , .1] , center = [.5 , .6] ,
-                                       on_click_up = partial(deck_manger().run) , groups = self.buttons)
 
 class BattleWindow(Scene):
     def __init__(self , **kwargs):
@@ -74,14 +76,15 @@ class BattleWindow(Scene):
 
         Scene.__init__(self , screen_to_draw = screen , dict_to_do = dict_to_do , **kwargs)
 
+    def create_objects(self):
         # create the buttons
-        back_btn = Button(text = 'Back' , area = [.1 , .1] , center = [.9 , .1] , on_click_up = partial(self.stop) , groups = self.buttons)
+        Button(text = 'Back' , area = [.1 , .1] , center = [.9 , .1] , on_click_up = partial(self.stop) ,
+                          groups = self.buttons)
 
-        deck = Deck([1,1,1,2,2,3,4] , area = [.2 , .2] , center = [.5 , .8] , groups = self.players)
+        Deck([1 , 2 , 3 , 4] , area = [.2 , .2] , center = [.5 , .8] , groups = self.players)
         
-  
-  
-class deck_manger(Scene):
+
+class DeckManager(Scene):
     def __init__(self , **kwargs):
         # groups to use
         self.buttons = Group()
@@ -104,7 +107,12 @@ class deck_manger(Scene):
 
         Scene.__init__(self , screen_to_draw = screen , dict_to_do = dict_to_do , **kwargs)
 
+    def create_objects(self):
         # create the buttons
-        back_btn = Button(text = 'Back' , area = [.1 , .1] , center = [.9 , .1] , on_click_up = partial(self.stop) , groups = self.buttons)
-        obj = set_deck(groups=[self.buttons])
-MainWindow().run()
+        Button(text = 'Back' , area = [.1 , .1] , center = [.9 , .1] , on_click_up = partial(self.stop) , groups = self.buttons)
+        set_deck(groups=[self.buttons])
+
+
+main_window = MainWindow().run()
+battle_window = BattleWindow()
+deck_manager_window = DeckManager()

@@ -455,24 +455,56 @@ class EditScene(Scene):
 
 class Canvas:
 	def __init__(self):
-		self.points = set()
+		self.points = list()
+		self.creating = False
 
 	def finger_down(self , event):
-		pos_x = event.x*screen_rect.w
-		pos_y = event.y*screen_rect.h
-		self.points.add((pos_x , pos_y))
-
-	def finger_up(self , event):
-		pos_x = event.x*screen_rect.w
-		pos_y = event.y*screen_rect.h
-		pos = pg.Vector2((pos_x , pos_y))
-		to_remove = set()
+		pos = pg.Vector2(event.x , event.y)
+		self.creating = True
 		for pt in self.points:
 			if pos.distance_to(pt) <= 30:
-				to_remove.add(pt)
-		for pt in to_remove:
-			self.points.discard(pt)
-		return
+				self.creating = False
+				break
+		if self.creating:
+			self.points.append(event.pos)
+
+	def finger_up(self , event):
+		if not self.creating:
+			to_remove = set()
+			pos = pg.Vector2(event.x , event.y)
+			for pt in self.points:
+				if pos.distance_to(pt) <= 30:
+					to_remove.add(pt)
+			for pt in to_remove:
+				self.points.remove(pt)
+		else:
+			self.creating = False
+
+	def click_down(self, event):
+		pos = pg.Vector2(event.pos)
+		self.creating = True
+		for pt in self.points:
+			if pos.distance_to(pt) <= 30:
+				self.creating = False
+				break
+		if self.creating:
+			self.points.append(event.pos)
+
+	def click_up(self, event):
+		if not self.creating:
+			to_remove = set()
+			pos = pg.Vector2(event.pos)
+			for pt in self.points:
+				if pos.distance_to(pt) <= 30:
+					to_remove.add(pt)
+			for pt in to_remove:
+				self.points.remove(pt)
+		else:
+			self.creating = False
+
+	def update(self):
+		if self.creating:
+			self.points[-1] = pg.mouse.get_pos()
 
 	def draw(self , screen_to_draw):
 		for x , y in self.points:
@@ -484,5 +516,5 @@ if __name__=="__main__":
 	screen = pg.display.set_mode((400,800))
 	screen_rect = screen.get_rect()
 	a = Canvas()
-	main_menu = Scene(screen , dict_to_do={"finger_down": [[a]] , "draw": [[a]] , "finger_up": [[a]]})
+	main_menu = Scene(screen , dict_to_do={"finger_down": [[a]] , 'update': [[a]], "draw": [[a]] , "finger_up": [[a]] , 'click_down':[[a]]})
 	main_menu.run()
