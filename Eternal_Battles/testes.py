@@ -1,6 +1,2 @@
-a = 'this is a test string for me to see that thing Bazingazest'
+print([2,1]/2)
 
-b = a.split()
-
-b.sort(key = lambda x:len(x) , reverse = False)
-print(b)

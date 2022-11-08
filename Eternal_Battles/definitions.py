@@ -6,7 +6,7 @@ import pygame as pg
 def set_scene(name , obj):
 	SCENES[name] = obj
 
-def calc_proportional_size(expected = None , max_area = None , max_rect = None):
+def calc_proportional_size(expected = None , max_area = (1,1) , max_rect = None):
 	"""
 	It calculates a proportional thing to the given rect and max size, given in units.
 	The max size is the proportion, max size of the rect, in units.
@@ -17,8 +17,6 @@ def calc_proportional_size(expected = None , max_area = None , max_rect = None):
 	"""
 	if max_rect is None:
 		max_rect = screen_rect
-	if max_area is None:
-		max_area = [1,1]
 
 	max_sizes = pg.Vector2(max_rect.size)
 	proportion = max_sizes.elementwise() / max_area

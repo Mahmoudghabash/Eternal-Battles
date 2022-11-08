@@ -8,7 +8,7 @@ from deck_and_cards_info import CARDS_STATS_DICT
 import math
 from textbox import TextBox as TB
 
-MAX_DISTANCE = calc_proportional_size(.1)
+MAX_DISTANCE = calc_proportional_size(.5)
 MAX_VELOCITY = 20
 
 
@@ -56,6 +56,10 @@ class Deck(Animations):
         self.main_deck = card_indexes  # this is the main deck, a list of indexes, we use this to change the cards, take a card, return a card
         self.discard_deck = list()  # this is a list of indexes of the discarded cards, cards that are not in the hand nor the main deck
         self.hand_deck = Group()  # This is a pg.sprite.Group object. It is a set like obj, a container that will get the sprites. Use for the Animations class
+        self.field = Group()
+
+        self.battlefield = None
+
 
         # create pg.Rect and images
         Animations.__init__(self , **kwargs)
@@ -76,6 +80,9 @@ class Deck(Animations):
         random.shuffle(self.discard_deck)
 
     # move cards in the different decks
+    def set_battlefield(self , battlefield):
+        self.battlefield = battlefield
+
     def main_to_hand(self , n_cards = 1):
         """
         Take the n firsts cards from the main and add them to the hand.
@@ -84,7 +91,8 @@ class Deck(Animations):
         """
         for _ in range(n_cards):
             if len(self.main_deck) >= 1:
-                self.create_card_in_hand(card_id = self.main_deck.pop(0))  # remove the first card of the deck and add it to the discarded list
+                if self.battlefield is not None and self.battlefield.can_add_card_to_hand():
+                    self.create_card_in_hand(card_id = self.main_deck.pop(0))  # remove the first card of the deck and add it to the discarded list
 
             else:
                 print('oh no, the deck is over!')  # lets check what to do later
@@ -195,6 +203,13 @@ class Deck(Animations):
         self.discard_deck.append(card_id)   # put the card in the end
         card.kill()                         # delete the card from the groups
 
+    def hand_to_field(self, card):
+        card.remove(self.hand_deck)
+        card.add(self.field)
+
+    def field_to_hand(self, card):
+        card.add(self.hand_deck)
+        card.remvoe(self.field)
 
     # helpers
     def create_card_in_hand(self , card_id):
@@ -203,8 +218,9 @@ class Deck(Animations):
         :param card_id: index for the CARDS_STATS_DICT and CARDS_IMAGES_DICT
         :return: None
         """
-        Card(card_id = card_id , deck = self , groups = [self.hand_deck] ,
-             area = self.get_area() , color = 'dark green')
+        new_card = Card(card_id = card_id , deck = self , groups = [self.hand_deck] ,
+                        area = self.get_area() , color = 'dark green' , absolute_pos = self.rect.center)
+        self.battlefield.place_card_hand(new_card)
 
     def get_hand_deck(self):
         return self.hand_deck
@@ -250,9 +266,9 @@ class Deck(Animations):
         """
         if self.rect.collidepoint(event.pos):
             self.main_to_hand()
+            return True
         for card in self.hand_deck:
             card.click_down(event)
-    
 
     def click_up(self , event):
         """
@@ -263,6 +279,8 @@ class Deck(Animations):
         for card in self.hand_deck:
             card.click_up(event)
 
+    def get_battle_field(self):
+        return self.battlefield
 
 
 class Card(Animations):
@@ -293,6 +311,8 @@ class Card(Animations):
         self.damage = this_card_infos.get('damage' , 2)
         self.card_name = this_card_infos.get('card_name' , 'No Name')
         self.deck = deck
+        self.expected_position = None
+        self.played = False
 
         # for handle in game things
         self.fixed_position = None  # this is a place (x , y) where the card will be 'attracted' to, in case it is played
@@ -312,7 +332,7 @@ class Card(Animations):
         :param kwargs: args for the Animations.update()
         :return:
         """
-        self.velocity *= 0.9
+        self.velocity *= 0.8
 
         if not self.clicked:
             if self.fixed_position is None:
@@ -328,6 +348,9 @@ class Card(Animations):
     def update_animations(self):
         Animations.update(self)
 
+    def set_expected_position(self, pos = None):
+        self.expected_position = pos
+
     def update_not_played(self):
         """
         Calculates the forces to move itself, if hitting other cards.
@@ -335,16 +358,13 @@ class Card(Animations):
         """
 
         # calc the force and angle for each card it is touching
-        hand_cards = self.deck.get_hand_deck()  # get a pg.Group with all the cards in the rand
 
-        for card in hand_cards:
-            if card != self:  # not checking with itself
-                if self.rect.colliderect(card):  # if card collide
-                    if self.rect.center == card.rect.center:  # move a little bit if 2 rects are the same possition
-                        self.rect.move_ip(int(random.random() * 10) , 0)
-                    ang = get_ang(self.rect.center , card.rect.center)  # calcs the angle
-                    self.acceleration += pg.math.Vector2(-math.cos(ang) * FORCE_TO_CARDS , -math.sin(
-                        ang) * FORCE_TO_CARDS)  # sums all the vector acc with the new vector from the force for the angule
+        if self.expected_position is not None:
+            pos = Vector2(self.expected_position)
+            distance = pos.distance_to(self.rect.center)
+            proportion = (min(distance/200 , 1))
+            ang = get_ang(self.rect.center , self.expected_position.center)  # calcs the angle
+            self.acceleration += pg.math.Vector2(math.cos(ang) , math.sin(ang)) * FORCE_TO_CARDS * proportion
 
         # calcs the new velocity
         self.velocity += self.acceleration
@@ -362,6 +382,7 @@ class Card(Animations):
         self.acceleration += [math.cos(angle) , math.sin(angle)]  # increase the acceleration to the position
         self.acceleration *= proportion  # multiply by the proportion, to get the velocity, but not a infinity velocity
         self.acceleration *= MAX_VELOCITY  # increase the velocity for it to move
+        self.velocity += self.acceleration
 
     def move(self):
         """
@@ -386,6 +407,16 @@ class Card(Animations):
 
     def click_up(self , event):
         self.clicked = False
+        # return
+        battle_field = self.deck.get_battle_field()
+        if battle_field is not None:
+            if self.played:
+                return
+            else:
+                if battle_field.card_hit_on_field(self):
+                    battle_field.hand_to_field(self)
+                    self.played = True
+
 
     # setters and getters
     def set_position(self , pos = None):

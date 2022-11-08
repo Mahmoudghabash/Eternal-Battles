@@ -7,6 +7,7 @@ from pygame.sprite import Group
 from buttons import Button
 from functools import partial
 from deck_manger import set_deck
+from battlefield import BattleField
 
 pg.init()
 
@@ -58,12 +59,13 @@ class BattleWindow(Scene):
         # groups to use
         self.buttons = Group()
         self.players = Group()
+        self.battlefields = set()
 
         # set the dictionary with the to do lists
         dict_to_do = {
             'update': [self.buttons , self.players] ,
             'move': [self.players] ,
-            'draw': [self.buttons , self.players] ,
+            'draw': [self.buttons , self.players , self.battlefields] ,
             'click_down': [self.buttons , self.players] ,
             'click_up': [] ,
             'key_down': [] ,
@@ -81,7 +83,10 @@ class BattleWindow(Scene):
         Button(text = 'Back' , area = [.1 , .1] , center = [.9 , .1] , on_click_up = partial(self.stop) ,
                           groups = self.buttons)
 
-        Deck([1 , 2 , 3 , 4] , area = [.2 , .2] , center = [.5 , .8] , groups = self.players)
+        deck = Deck([1 , 2 , 3 , 4] , area = [.2 , .2] , center = [.1 , .9] , groups = self.players)
+
+        btf = BattleField(deck , self.battlefields)
+        deck.set_battlefield(btf)
         
 
 class DeckManager(Scene):
