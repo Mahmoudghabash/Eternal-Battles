@@ -196,7 +196,6 @@ class Mapping:
 		"""
 		to_remove = []
 		for card in self.card_list:
-			print(card)
 			if not card.alive():
 				to_remove.append(card)
 		if to_remove:
