@@ -220,15 +220,13 @@ class Scene:
 		Change if needed
 
 		"""
-
-		# loops from self.obj_clicked
-		for obj in self.obj_clicked:
-			if obj.finger_up(event):
-				self.obj_clicked.clear()
-				return
-
-
 		if self.to_finger_up:
+			# loops from self.obj_clicked
+			for obj in self.obj_clicked:
+				if obj.finger_up(event):
+					self.obj_clicked.clear()
+					return
+
 			# loops if objects in self.to_finger_up
 			for c_list in self.to_finger_up:
 				for obj in c_list:
@@ -404,6 +402,7 @@ class Scene:
 		self.running = False
 
 	def quit(self):
+		pg.quit()
 		sys.exit()
 
 
