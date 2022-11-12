@@ -7,6 +7,7 @@ import random
 from deck_and_cards_info import CARDS_STATS_DICT
 import math
 from textbox import TextBox as TB
+from textbox import DamageText as DT
 
 MAX_DISTANCE = calc_proportional_size(.5)
 MAX_VELOCITY = 20
@@ -83,6 +84,9 @@ class Deck(Animations):
     def set_battlefield(self , battlefield):
         self.battlefield = battlefield
 
+    def set_position(self , pos):
+        self.rect.center = pos
+
     def main_to_hand(self , n_cards = 1):
         """
         Take the n firsts cards from the main and add them to the hand.
@@ -91,7 +95,7 @@ class Deck(Animations):
         """
         for _ in range(n_cards):
             if len(self.main_deck) >= 1:
-                if self.battlefield is not None and self.battlefield.can_add_card_to_hand():
+                if self.battlefield is not None and self.battlefield.can_add_card_to_hand(self):
                     self.create_card_in_hand(card_id = self.main_deck.pop(0))  # remove the first card of the deck and add it to the discarded list
 
             else:
@@ -220,10 +224,17 @@ class Deck(Animations):
         """
         new_card = Card(card_id = card_id , deck = self , groups = [self.hand_deck] ,
                         area = self.get_area() , color = 'dark green' , absolute_pos = self.rect.center)
-        self.battlefield.place_card_hand(new_card)
+        self.battlefield.place_card_hand(self , new_card)
 
     def get_hand_deck(self):
         return self.hand_deck
+
+    def get_played_cards(self):
+        played_cards = list()
+        for card in self.hand_deck:
+            if card.get_played():
+                played_cards.append(card)
+        return played_cards
 
     # handlers
     def update(self , **kwargs):
@@ -277,7 +288,8 @@ class Deck(Animations):
         :return:
         """
         for card in self.hand_deck:
-            card.click_up(event)
+            if card.click_up(event):
+                return True
 
     def get_battle_field(self):
         return self.battlefield
@@ -287,12 +299,12 @@ class Card(Animations):
     """
     Things to do:
         init - ok
-        click_up
-        click_down
+        click_up - ok
+        click_down - ok
         update - ok (animation)
-        draw
-        move
-        kill
+        draw - ok
+        move - ok
+        kill - ok
 
     """
 
@@ -319,10 +331,32 @@ class Card(Animations):
         self.velocity = Vector2([0 , 0])
         self.acceleration = Vector2([0 , 0])
         self.clicked = False
+        self.texts = Group()
 
-        self.text = TB(
+        TB(
             text=f'{self.card_name}' , area = (1,.5) , rect_to_be = self.rect , relative_center = [.5 , .1] ,
-            font_color = "black" , bg_color = None
+            font_color = "black" , bg_color = None , groups = [self.texts]
+        )
+
+        TB(
+            text = f'Power' , area = (.5 , .1) , rect_to_be = self.rect , relative_center = [.25 , .5] ,
+            font_color = "black" , bg_color = None , groups = [self.texts]
+        )
+
+        self.damage_text = TB(
+            text = f'{self.damage}' , area = (.2 , .2) , rect_to_be = self.rect , relative_center = [.75 , .5] ,
+            font_color = "black" , bg_color = None , groups = [self.texts]
+        )
+
+        TB(
+            text = f'HP: ' , area = (.25 , .2) , rect_to_be = self.rect ,
+            relative_center = [.25/2 , .9] ,
+            font_color = "black" , bg_color = None , groups = [self.texts]
+        )
+
+        self.hp_text = TB(
+            text = f'{self.health}' , area = (.15*(len(f'{self.health}')) , .2) , rect_to_be = self.rect , relative_center = [.5 , .9] ,
+            font_color = "black" , bg_color = None , groups = [self.texts]
         )
 
     # handlers and updates
@@ -332,6 +366,9 @@ class Card(Animations):
         :param kwargs: args for the Animations.update()
         :return:
         """
+
+        self.check_hp()
+
         self.velocity *= 0.8
 
         if not self.clicked:
@@ -344,6 +381,10 @@ class Card(Animations):
         self.acceleration *= 0
 
         self.update_animations()
+
+    def check_hp(self):
+        if self.health <= 0:
+            self.kill()
 
     def update_animations(self):
         Animations.update(self)
@@ -395,27 +436,46 @@ class Card(Animations):
             self.rect.move_ip(self.velocity)
         self.rect.clamp_ip(self.rect_to_be)
 
-        self.text.center_image()
+        for text in self.texts:
+            text.center_image()
 
     def draw(self , screen_to_draw , **kwargs):
         Animations.draw(self , screen_to_draw = screen_to_draw , **kwargs)
-        self.text.draw(screen_to_draw = screen_to_draw)
+        for text in self.texts:
+            text.draw(screen_to_draw = screen_to_draw)
 
     def click_down(self , event):
         self.clicked = self.rect.collidepoint(event.pos)
+        if self.clicked:
+            card_on_top.add(self)
         return self.clicked
 
     def click_up(self , event):
-        self.clicked = False
-        # return
+        if self.clicked:
+            self.clicked = False
+            battle_field = self.deck.get_battle_field()
+            # card_on_top.remove(self)
+            if battle_field is not None:
+                if self.played:
+                    enemies = battle_field.get_enemies(self.deck)
+                    if len(enemies) > 0:
+                        for card in enemies:
+                            if self.rect.colliderect(card.get_rect()):
+                                self.attack(card)
+                                return True
+
+                else:
+                    if battle_field.card_hit_on_field(self.deck , self):
+                        battle_field.hand_to_field(self.deck , self)
+                        self.played = True
+
+    def update_health_text(self):
+        self.hp_text.change_text(self.health)
+
+    def kill(self):
+        Animations.kill(self)
         battle_field = self.deck.get_battle_field()
-        if battle_field is not None:
-            if self.played:
-                return
-            else:
-                if battle_field.card_hit_on_field(self):
-                    battle_field.hand_to_field(self)
-                    self.played = True
+        battle_field.remove_cards()
 
 
     # setters and getters
@@ -442,11 +502,31 @@ class Card(Animations):
     def get_hp(self):
         return self.health
 
-    def get_damage(self):
+    def get_damage(self , card):
         return self.damage
+
+    def suffer_damage(self , value):
+        self.change_hp(value)
+        DT(text = f'{value}' , card = self , absolute_center = self.rect.midleft ,
+           rect_to_be = self.rect)
+
 
     def change_hp(self , value = 1):
         self.health += value
+        self.update_health_text()
+
+    def attack(self , card):
+        self.do_damage(card)
+        card.do_damage(self)
+
+    def do_damage(self, card):
+        card.suffer_damage(-self.get_damage(card))
+
+    def get_played(self):
+        return self.played
+
+    def get_rect(self):
+        return self.rect
 
 
 class CardShowCase(Card):

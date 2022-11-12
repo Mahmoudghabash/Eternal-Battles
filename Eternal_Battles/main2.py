@@ -63,9 +63,9 @@ class BattleWindow(Scene):
 
         # set the dictionary with the to do lists
         dict_to_do = {
-            'update': [self.buttons , self.players] ,
+            'update': [self.buttons , self.players , damage_texts] ,
             'move': [self.players] ,
-            'draw': [self.buttons , self.players , self.battlefields] ,
+            'draw': [self.buttons , self.players , self.battlefields , card_on_top , damage_texts] ,
             'click_down': [self.buttons , self.players] ,
             'click_up': [] ,
             'key_down': [] ,
@@ -83,10 +83,11 @@ class BattleWindow(Scene):
         Button(text = 'Back' , area = [.1 , .1] , center = [.9 , .1] , on_click_up = partial(self.stop) ,
                           groups = self.buttons)
 
-        deck = Deck([1 , 2 , 3 , 4] , area = [.2 , .2] , center = [.1 , .9] , groups = self.players)
+        deck1 = Deck([1 , 2 , 3 , 4] , area = [.2 , .2] , groups = self.players)
+        deck2 = Deck([1 , 2 , 3 , 4] , area = [.2 , .2] , groups = self.players)
 
-        btf = BattleField(deck , self.battlefields)
-        deck.set_battlefield(btf)
+        btf = BattleField(group = self.battlefields)
+        btf.set_players(deck1 , deck2)
         
 
 class DeckManager(Scene):
@@ -119,5 +120,3 @@ class DeckManager(Scene):
 
 
 main_window = MainWindow().run()
-battle_window = BattleWindow()
-deck_manager_window = DeckManager()

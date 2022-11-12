@@ -6,6 +6,7 @@ from definitions import *
 from variables import *
 import pygame as pg
 from pygame.sprite import Sprite
+import random
 
 # Some Default Font
 font_size = int(screen_rect.h / 1)
@@ -21,7 +22,8 @@ class TextBox(Sprite):
 	param bg_color : pg.color
 	"""
 
-	def __init__(self , text='' , area = (1,1) , rect_to_be = None , relative_center = None , absolute_center = None , font = None , font_color = "white" , bg_color = "black" , groups = None):
+	def __init__(self , text='' , area = (1,1) , rect_to_be = None , relative_center = None , absolute_center = None ,
+	             font = None , font_color = "white" , bg_color = "black" , groups = None):
 		"""
 
 		It takes a string, a area proportion , a pg.font,
@@ -115,7 +117,7 @@ class TextBox(Sprite):
 		:param new_text: a string object
 		:return:
 		"""
-		self.text = new_text
+		self.text = str(new_text)
 		self.line_w , self.line_h = self.font.size(str(self.text))
 		self.create_image()
 
@@ -132,3 +134,22 @@ class TextBox(Sprite):
 		self.rect = self.rect = pg.Rect((0,0) , calc_proportional_size(expected = new_area , max_area = [1,1] ,
 		                                                               max_rect = self.rect_to_be))
 		self.create_image()
+
+
+class DamageText(TextBox):
+	def __init__(self , card , **kwargs):
+		TextBox.__init__(self , area = [.2 , .1] , groups = [damage_texts] , **kwargs)
+		self.card = card
+		self.counter = 0
+
+	def update(self):
+		self.counter += 5
+		x = random.randint(-1 , 1)
+		y = random.randint(-1 , 1)
+		self.rect.center = self.card.rect.center
+		self.rect.move_ip([x , y])
+		if self.counter >= 255:
+			self.kill()
+
+	def draw(self ,screen_to_draw):
+		TextBox.draw(self, screen_to_draw = screen_to_draw , alpha = 255-(self.counter))

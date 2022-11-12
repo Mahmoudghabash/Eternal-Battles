@@ -1,4 +1,5 @@
 import pygame as pg
+from pygame.sprite import Group , GroupSingle
 
 ######## Initialize pygame
 pg.init()
@@ -15,20 +16,22 @@ POPULATION_CLASSES = [None]
 FILTERS_CLASSES = []
 
 ######## Groups
-text_boxes_group = pg.sprite.Group()
+text_boxes_group = Group()
+card_on_top = GroupSingle()
 
-# the player groups
-players_group = pg.sprite.Group()
-characters_group = pg.sprite.Group()
+# the player1 groups
+players_group = Group()
+characters_group = Group()
 
 # the enemies groups
-enemies_group = pg.sprite.Group()
-enemies_ind_groups = pg.sprite.Group()
+enemies_group = Group()
+enemies_ind_groups = Group()
 
+damage_texts = Group()
 
-buttons_group = pg.sprite.Group()
-shoots_group = pg.sprite.Group()
-filter_group = pg.sprite.Group()
+buttons_group = Group()
+shoots_group = Group()
+filter_group = Group()
 
 moving_objects_group = set()
 
